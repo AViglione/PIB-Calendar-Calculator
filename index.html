@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GFN Program Date Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #0263EE;
+    --blue-dark: #013A8C;
+    --orange: #E8711A;
+    --bg: #ffffff;
+    --surface: #F7F8FA;
+    --border: #E4E6EA;
+    --text: #1A1D23;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+    --radius: 8px;
+    --font: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 20px 24px 40px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-mark {
+    width: 28px; height: 28px;
+    background: var(--blue);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-mark svg { width: 16px; height: 16px; fill: white; }
+
+  header h1 { font-size: 14px; font-weight: 500; color: var(--text); }
+  header p  { font-size: 12px; color: var(--text-tertiary); margin-top: 1px; }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  input[type="date"],
+  input[type="number"],
+  select {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.12s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+  input:focus, select:focus { border-color: var(--blue); }
+
+  input[type="date"].has-value { color: var(--text); }
+  input[type="date"]:not(.has-value) { color: var(--text-tertiary); }
+
+  .showcase-field input { border-color: var(--orange); }
+  .showcase-field input:focus { border-color: #a84d0e; }
+  .showcase-field label { color: var(--orange); }
+
+  .skip-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 7px;
+  }
+
+  .skip-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 18px; }
+
+  .skip-chip {
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: var(--font);
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-tertiary);
+    transition: all 0.12s;
+  }
+  .skip-chip:hover { border-color: var(--orange); color: var(--orange); }
+  .skip-chip.on { background: #FFF3EC; color: var(--orange); border-color: var(--orange); }
+
+  .milestones {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .mstone { background: var(--surface); border-radius: var(--radius); padding: 10px 12px; }
+  .mstone-label { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .mstone-val { font-size: 13px; font-weight: 500; color: var(--text); font-family: var(--mono); }
+  .mstone.accent .mstone-val { color: var(--blue-dark); }
+  .mstone.accent { background: #EEF4FF; }
+  .mstone.showcase-card { background: #FFF3EC; }
+  .mstone.showcase-card .mstone-label { color: var(--orange); }
+  .mstone.showcase-card .mstone-val { color: #8B3E06; }
+  .mstone.showcase-card .mstone-val.tbd { color: var(--text-tertiary); font-style: italic; font-family: var(--font); font-size: 12px; }
+
+  .list-header {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .sess-list {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .sess-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .sess-row:last-child { border-bottom: none; }
+
+  .sess-n { font-size: 10px; color: var(--text-tertiary); min-width: 20px; font-family: var(--mono); }
+  .sess-date { font-family: var(--mono); color: var(--text); flex: 1; }
+  .sess-skip { font-size: 11px; color: var(--text-tertiary); font-style: italic; flex: 1; }
+
+  .showcase-row { background: #FFF3EC; }
+  .showcase-row .sess-date { color: #8B3E06; }
+  .showcase-row .sess-date.tbd { color: var(--text-tertiary); font-style: italic; font-family: var(--font); font-size: 12px; }
+  .showcase-badge {
+    font-size: 10px;
+    background: var(--orange);
+    color: white;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .showcase-badge.tbd { background: var(--text-tertiary); }
+
+  .copy-bar { margin-top: 12px; display: flex; justify-content: flex-end; }
+
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 16px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .copy-btn:hover { background: var(--blue-dark); }
+  .copy-btn svg { width: 14px; height: 14px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+  .empty {
+    color: var(--text-tertiary);
+    font-size: 13px;
+    padding: 32px 0;
+    text-align: center;
+  }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 16 16"><path d="M8 1L15 5V11L8 15L1 11V5L8 1Z"/></svg>
+  </div>
+  <div>
+    <h1>GFN Program Date Calculator</h1>
+    <p>Enter a start date — all session dates generate automatically.</p>
+  </div>
+</header>
+
+<div class="config-grid">
+  <div class="field">
+    <label>Start date</label>
+    <input type="date" id="start-date">
+  </div>
+  <div class="field">
+    <label>Session day</label>
+    <select id="session-day">
+      <option value="0">Sunday</option>
+      <option value="1">Monday</option>
+      <option value="2">Tuesday</option>
+      <option value="3">Wednesday</option>
+      <option value="4">Thursday</option>
+      <option value="5">Friday</option>
+      <option value="6">Saturday</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Duration</label>
+    <select id="duration">
+      <option value="8">8 weeks</option>
+      <option value="10">10 weeks</option>
+      <option value="12">10 + 2</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Apps open (weeks before)</label>
+    <input type="number" id="apps-open" min="0" max="16" value="6">
+  </div>
+  <div class="field">
+    <label>Apps close (weeks before)</label>
+    <input type="number" id="apps-close" min="0" max="12" value="2">
+  </div>
+  <div class="field showcase-field">
+    <label>Pitch showcase date</label>
+    <input type="date" id="showcase-date" placeholder="Set when confirmed">
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="skip-label">Skip weeks — select all that apply</div>
+<div class="skip-row" id="skip-row"></div>
+
+<div id="output">
+  <div class="empty">Enter a start date to generate the schedule.</div>
+</div>
+
+<script>
+const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function fmt(d)      { return DAYS[d.getDay()] + ' ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear(); }
+function fmtShort(d) { return MONTHS[d.getMonth()] + ' ' + d.getDate(); }
+
+function nthWeekday(y, month, weekday, n) {
+  let d = new Date(y, month, 1);
+  while (d.getDay() !== weekday) d.setDate(d.getDate() + 1);
+  d.setDate(d.getDate() + (n - 1) * 7);
+  return d;
+}
+function lastWeekday(y, month, weekday) {
+  let d = new Date(y, month + 1, 0);
+  while (d.getDay() !== weekday) d.setDate(d.getDate() - 1);
+  return d;
+}
+
+const HOLIDAYS = [
+  { id:'newyears',     label:"New Year's Day",   fn: y => new Date(y, 0, 1) },
+  { id:'mlk',          label:"MLK Day",           fn: y => nthWeekday(y, 0, 1, 3) },
+  { id:'presidents',   label:"Presidents' Day",   fn: y => nthWeekday(y, 1, 1, 3) },
+  { id:'memorial',     label:"Memorial Day",      fn: y => lastWeekday(y, 4, 1) },
+  { id:'juneteenth',   label:"Juneteenth",        fn: y => new Date(y, 5, 19) },
+  { id:'july4',        label:"Independence Day",  fn: y => new Date(y, 6, 4) },
+  { id:'laborday',     label:"Labor Day",         fn: y => nthWeekday(y, 8, 1, 1) },
+  { id:'columbus',     label:"Columbus Day",      fn: y => nthWeekday(y, 9, 1, 2) },
+  { id:'veterans',     label:"Veterans Day",      fn: y => new Date(y, 10, 11) },
+  { id:'thanksgiving', label:"Thanksgiving",      fn: y => nthWeekday(y, 10, 4, 4) },
+  { id:'christmas',    label:"Christmas",         fn: y => new Date(y, 11, 25) },
+];
+
+let activeSkips = new Set();
+
+const skipRow = document.getElementById('skip-row');
+HOLIDAYS.forEach(h => {
+  const b = document.createElement('button');
+  b.className = 'skip-chip';
+  b.textContent = h.label;
+  b.dataset.hid = h.id;
+  b.onclick = () => {
+    if (activeSkips.has(h.id)) { activeSkips.delete(h.id); b.classList.remove('on'); }
+    else { activeSkips.add(h.id); b.classList.add('on'); }
+    generate();
+  };
+  skipRow.appendChild(b);
+});
+
+function weekStart(d) {
+  const s = new Date(d);
+  s.setDate(s.getDate() - s.getDay());
+  s.setHours(0, 0, 0, 0);
+  return s.getTime();
+}
+
+function isSkipped(d) {
+  const y = d.getFullYear();
+  for (const hid of activeSkips) {
+    const hol = HOLIDAYS.find(h => h.id === hid);
+    if (hol && weekStart(d) === weekStart(hol.fn(y))) return hol.label;
+  }
+  return null;
+}
+
+function generate() {
+  const startVal = document.getElementById('start-date').value;
+  if (!startVal) return;
+
+  const sessionDay   = parseInt(document.getElementById('session-day').value);
+  const sessionCount = parseInt(document.getElementById('duration').value);
+  const appsOpenWks  = parseInt(document.getElementById('apps-open').value)  || 0;
+  const appsCloseWks = parseInt(document.getElementById('apps-close').value) || 0;
+  const showcaseVal  = document.getElementById('showcase-date').value;
+
+  const [yr, mo, dy] = startVal.split('-').map(Number);
+  let cur = new Date(yr, mo - 1, dy);
+  cur.setDate(cur.getDate() + (sessionDay - cur.getDay() + 7) % 7);
+
+  const sessions = [], skipped = [];
+  while (sessions.length < sessionCount) {
+    const reason = isSkipped(cur);
+    if (reason) skipped.push({ date: new Date(cur), label: reason });
+    else sessions.push(new Date(cur));
+    cur.setDate(cur.getDate() + 7);
+  }
+
+  const first = sessions[0];
+  const last  = sessions[sessions.length - 1];
+
+  const appsOpen  = new Date(first); appsOpen.setDate(appsOpen.getDate()   - appsOpenWks  * 7);
+  const appsClose = new Date(first); appsClose.setDate(appsClose.getDate() - appsCloseWks * 7);
+
+  let showcaseDate = null;
+  if (showcaseVal) {
+    const [sy, sm, sd] = showcaseVal.split('-').map(Number);
+    showcaseDate = new Date(sy, sm - 1, sd);
+  }
+
+  const durationLabel = document.getElementById('duration').options[document.getElementById('duration').selectedIndex].text;
+  const skipCount = skipped.length;
+
+  let html = '<div class="milestones">';
+  html += mstone('Applications open',  fmtShort(appsOpen),  '');
+  html += mstone('Applications close', fmtShort(appsClose), '');
+  html += mstone('Cohort start',       fmtShort(first),     'accent');
+  html += showcaseMstone(showcaseDate);
+  html += '</div>';
+
+  const all = [];
+  sessions.forEach((d, i) => all.push({ type:'session', date:d, num:i+1 }));
+  skipped.forEach(s  => all.push({ type:'skip', date:s.date, label:s.label }));
+  all.sort((a, b) => a.date - b.date);
+
+  html += '<div class="list-header">'
+        + durationLabel + ' program'
+        + (skipCount ? ' &mdash; ' + skipCount + ' week' + (skipCount > 1 ? 's' : '') + ' skipped' : '')
+        + '</div>';
+  html += '<div class="sess-list">';
+
+  all.forEach(e => {
+    if (e.type === 'session') {
+      html += '<div class="sess-row">'
+            + '<span class="sess-n">' + e.num + '</span>'
+            + '<span class="sess-date">' + fmt(e.date) + '</span>'
+            + '</div>';
+    } else {
+      html += '<div class="sess-row">'
+            + '<span class="sess-n" style="opacity:0.3">-</span>'
+            + '<span class="sess-skip">skip &mdash; ' + e.label + '</span>'
+            + '</div>';
+    }
+  });
+
+  if (showcaseDate) {
+    html += '<div class="sess-row showcase-row">'
+          + '<span class="sess-n">&#9733;</span>'
+          + '<span class="sess-date">' + fmt(showcaseDate) + '</span>'
+          + '<span class="showcase-badge">Pitch Showcase</span>'
+          + '</div>';
+  } else {
+    html += '<div class="sess-row showcase-row">'
+          + '<span class="sess-n">&#9733;</span>'
+          + '<span class="sess-date tbd">Date pending &mdash; set above when confirmed</span>'
+          + '<span class="showcase-badge tbd">Pitch Showcase</span>'
+          + '</div>';
+  }
+
+  html += '</div>';
+
+  window._copyText = buildCopy(durationLabel, appsOpen, appsClose, first, all, showcaseDate);
+
+  const copyIcon = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  html += '<div class="copy-bar"><button class="copy-btn" id="copy-btn" onclick="doCopy()">' + copyIcon + 'Copy schedule</button></div>';
+
+  document.getElementById('output').innerHTML = html;
+}
+
+function mstone(label, val, cls) {
+  return '<div class="mstone ' + cls + '"><div class="mstone-label">' + label + '</div>'
+       + '<div class="mstone-val">' + val + '</div></div>';
+}
+
+function showcaseMstone(date) {
+  const val = date ? fmtShort(date) : 'TBD';
+  const cls = date ? 'showcase-card' : 'mstone';
+  const valCls = date ? '' : ' tbd';
+  return '<div class="mstone ' + cls + '"><div class="mstone-label">Pitch showcase</div>'
+       + '<div class="mstone-val' + valCls + '">' + val + '</div></div>';
+}
+
+function buildCopy(durationLabel, appsOpen, appsClose, first, all, showcaseDate) {
+  const lines = ['GFN Program - Key Dates (' + durationLabel + ')', ''];
+  lines.push('Applications open:   ' + fmt(appsOpen));
+  lines.push('Applications close:  ' + fmt(appsClose));
+  lines.push('Cohort start:        ' + fmt(first));
+  lines.push('');
+  lines.push('Sessions:');
+  all.forEach(e => {
+    if (e.type === 'session') lines.push('  Session ' + e.num + ': ' + fmt(e.date));
+    else lines.push('  [skip - ' + e.label + ']');
+  });
+  lines.push('');
+  lines.push('Pitch Showcase: ' + (showcaseDate ? fmt(showcaseDate) : 'TBD'));
+  return lines.join('\n');
+}
+
+window.doCopy = function() {
+  navigator.clipboard.writeText(window._copyText || '').then(() => {
+    const btn = document.getElementById('copy-btn');
+    if (!btn) return;
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+      const icon = '<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"/></svg>';
+      btn.innerHTML = icon + 'Copy schedule';
+    }, 2000);
+  });
+};
+
+['start-date','session-day','duration','apps-open','apps-close','showcase-date'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) { el.addEventListener('change', generate); el.addEventListener('input', generate); }
+});
+
+const t   = new Date();
+const pad = n => String(n).padStart(2, '0');
+document.getElementById('start-date').value = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
+generate();
+</script>
+</body>
+</html>
